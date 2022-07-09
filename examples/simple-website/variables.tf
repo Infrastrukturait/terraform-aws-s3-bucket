@@ -8,7 +8,7 @@ variable "name" {
 
 variable "bucket_acl" {
     type    = string
-    default = "private"
+    default = "public-read"
 }
 
 
