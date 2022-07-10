@@ -13,6 +13,18 @@ resource "aws_s3_bucket" "this" {
   tags          = var.tags
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  count  = var.encryption_enabled ? 1 : 0
+  bucket = var.bucket_name
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.encryption_master_kms_key
+      sse_algorithm     = var.encryption_sse_algorithm
+    }
+  }
+}
+
 resource "aws_s3_bucket_policy" "this" {
   count  = tobool(local.bucket_policy_enabled) ? 1 : 0
   bucket = var.bucket_name
