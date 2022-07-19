@@ -1,6 +1,7 @@
 locals {
   bucket_arn                  = "arn:aws:s3:::${var.bucket_name}"
-  bucket_acl                  = var.website_enabled ? "public-read" : var.bucket_acl
+  bucket_acl_enabled          = var.bucket_acl == "" ? false : true
+  bucket_acl                  = local.bucket_acl_enabled ? (var.website_enabled ? "public-read" : var.bucket_acl) : ""
 
   public_access_block_enabled = var.block_public_acls || var.block_public_policy || var.ignore_public_acls || var.restrict_public_buckets
   bucket_policy_enabled       = var.bucket_policy == "" ? false : true
@@ -32,6 +33,7 @@ resource "aws_s3_bucket_policy" "this" {
 }
 
 resource "aws_s3_bucket_acl" "this" {
+  count  = tobool(local.bucket_acl_enabled) ? 1 : 0  
   bucket = var.bucket_name
   acl    = local.bucket_acl
 }

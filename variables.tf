@@ -5,7 +5,7 @@ variable "bucket_name" {
 
 variable "bucket_acl" {
   type        = string
-  default     = null
+  default     = ""
   description = <<-EOT
     The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply.
     We recommend `private` to avoid exposing sensitive information. When `website_enabled` override by `public-read`.
