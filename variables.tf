@@ -43,7 +43,6 @@ variable "encryption_sse_algorithm" {
   } 
 }
 
-
 variable "force_destroy" {
   type        = bool
   default     = false
@@ -147,5 +146,3 @@ variable "tags" {
   default     = {}
   description = "Map of tags to assign to bucket."
 }
-
-

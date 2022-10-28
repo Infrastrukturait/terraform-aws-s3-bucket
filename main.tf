@@ -10,7 +10,7 @@ locals {
   versioning                  = var.versioning ? "Enabled" : "Disabled"
 
   # `full_lifecycle_rule_schema` is just for documentation and cheat sheet for maintainer, not actually used.
-  full_lifecycle_rule_schema = {
+  full_lifecycle_rule_schema  = {
     id                             = null # string, must be specified and unique
     status                         = true # bool
 
@@ -162,7 +162,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
         content {
           object_size_greater_than = try(filter.value.object_size_greater_than, null)
           object_size_less_than    = try(filter.value.object_size_less_than, null)
-          prefix                   = try(filter.value.prefix, null)
+          prefix                    = try(filter.value.prefix, null)
 
           dynamic "tag" {
             for_each = try(filter.value.tags, filter.value.tag, [])
@@ -183,7 +183,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
           and {
             object_size_greater_than = try(filter.value.object_size_greater_than, null)
             object_size_less_than    = try(filter.value.object_size_less_than, null)
-            prefix                   = try(filter.value.prefix, null)
+            prefix                    = try(filter.value.prefix, null)
             tags                     = try(filter.value.tags, filter.value.tag, null)
           }
         }
