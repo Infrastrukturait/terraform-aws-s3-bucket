@@ -43,7 +43,6 @@ variable "encryption_sse_algorithm" {
   } 
 }
 
-
 variable "force_destroy" {
   type        = bool
   default     = false
@@ -113,10 +112,37 @@ variable "website_routing_rules" {
   EOT
 }
 
+variable "versioning" {
+  type        = bool
+  default     = false
+  description = "Boolean specifying enabled state of versioning or object containing detailed versioning configuration."
+}
+
+variable "lifecycle_rules" {
+  type        = any
+  default     = []
+  description =  <<-EOT
+    List of maps containing configuration of object lifecycle management.
+    Example to older objects than `60 days` to move to [GLACIER](https://aws.amazon.com/s3/storage-classes/glacier/) storage class:
+    ```
+    [
+      {
+        id      = "example1"
+        enabled = true
+        transition = [
+          {
+            days          = 60
+            storage_class = "GLACIER"
+          }
+        ]
+      }
+    ]
+    ```
+  EOT
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
   description = "Map of tags to assign to bucket."
 }
-
-
