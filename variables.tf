@@ -35,7 +35,7 @@ variable "encryption_master_kms_key" {
 
 variable "encryption_sse_algorithm" {
   type        = string
-  default     = "aws:kms"
+  default     = "AES256"
   description = "server-side encryption algorithm to use. Valid values are `AES256` and `aws:kms`"
   validation {
     condition     = contains(["AES256", "aws:kms"], var.encryption_sse_algorithm)
