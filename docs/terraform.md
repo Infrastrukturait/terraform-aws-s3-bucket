@@ -8,12 +8,14 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 2.0.0 |
+| <a name="requirement_time"></a> [time](#requirement\_time) | >= 0.9.1 |
 
 ### Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.9.0 |
+| <a name="provider_time"></a> [time](#provider\_time) | 0.9.1 |
 
 ### Modules
 
@@ -26,11 +28,14 @@ No modules.
 | [aws_s3_bucket.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket_acl.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_acl) | resource |
 | [aws_s3_bucket_lifecycle_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
+| [aws_s3_bucket_ownership_controls.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls) | resource |
 | [aws_s3_bucket_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_server_side_encryption_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_server_side_encryption_configuration) | resource |
 | [aws_s3_bucket_versioning.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_s3_bucket_website_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_website_configuration) | resource |
+| [time_sleep.wait_for_aws_s3_bucket_settings](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
+| [aws_canonical_user_id.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/canonical_user_id) | data source |
 
 ### Inputs
 
@@ -38,8 +43,10 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_block_public_acls"></a> [block\_public\_acls](#input\_block\_public\_acls) | Set to `false` to disable the blocking of new public access lists on the bucket. | `bool` | `true` | no |
 | <a name="input_block_public_policy"></a> [block\_public\_policy](#input\_block\_public\_policy) | Set to `false` to disable the blocking of new public policies on the bucket. | `bool` | `true` | no |
-| <a name="input_bucket_acl"></a> [bucket\_acl](#input\_bucket\_acl) | The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply.<br>We recommend `private` to avoid exposing sensitive information. When `website_enabled` override by `public-read`. | `string` | `""` | no |
+| <a name="input_bucket_acl"></a> [bucket\_acl](#input\_bucket\_acl) | The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply.<br>Deprecated by AWS in favor of bucket policies.<br>Automatically disabled if `bucket_object_ownership` is set to "BucketOwnerEnforced".<br>Defaults to "private" for backwards compatibility, but we recommend setting `s3_object_ownership` to "BucketOwnerEnforced" instead. | `string` | `null` | no |
+| <a name="input_bucket_grants"></a> [bucket\_grants](#input\_bucket\_grants) | A list of policy grants for the bucket, taking a list of permissions.<br>Conflicts with `bucket_acl`. Set `bucket_acl` to `null` to use this.<br>Deprecated by AWS in favor of bucket policies.<br>Automatically disabled if `s3_object_ownership` is set to "BucketOwnerEnforced". | <pre>list(object({<br>    id          = string<br>    type        = string<br>    permissions = list(string)<br>    uri         = string<br>  }))</pre> | `[]` | no |
 | <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | Name of the bucket. If omitted, Terraform will assign a random, unique name. | `string` | n/a | yes |
+| <a name="input_bucket_object_ownership"></a> [bucket\_object\_ownership](#input\_bucket\_object\_ownership) | Specifies the S3 object ownership control.<br>Valid values are `ObjectWriter`, `BucketOwnerPreferred`, and 'BucketOwnerEnforced'.<br>'BucketOwnerEnforced': ACLs are disabled, and the bucket owner automatically owns and has full control over every object in the bucket.<br>'BucketOwnerPreferred': Objects uploaded to the bucket change ownership to the bucket owner if the objects are uploaded with the bucket-owner-full-control canned ACL.<br>'ObjectWriter': The uploading account will own the object if the object is uploaded with the bucket-owner-full-control canned ACL.<br>Defaults to "ObjectWriter" for backwards compatibility, but we recommend setting "BucketOwnerEnforced" instead. | `string` | `"ObjectWriter"` | no |
 | <a name="input_bucket_policy"></a> [bucket\_policy](#input\_bucket\_policy) | A bucket policy in JSON format | `string` | `""` | no |
 | <a name="input_encryption_enabled"></a> [encryption\_enabled](#input\_encryption\_enabled) | Boolean to enable server-side encryption for S3 bucket. | `bool` | `false` | no |
 | <a name="input_encryption_master_kms_key"></a> [encryption\_master\_kms\_key](#input\_encryption\_master\_kms\_key) | AWS KMS master key ID used for the SSE-KMS encryption. This can only be used when you set the value of `encryption_sse_algorithm` as `aws:kms`<br>When empty in use is default aws/s3 AWS KMS master key provided by AWS. | `string` | `""` | no |
@@ -83,9 +90,9 @@ module "bucket_label" {
 }
 
 module "app_prod_bucket" {
-  source      = "../../"
-  bucket_name = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
-  bucket_acl  = var.bucket_acl
+  source                  = "../../"
+  bucket_name             = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
+  bucket_object_ownership = "BucketOwnerEnforced"
   lifecycle_rules = [
     {
       id      = "log"
@@ -120,6 +127,7 @@ module "app_prod_bucket" {
       }
     }
   ]
+
   tags = module.bucket_label.tags
 }
 ```

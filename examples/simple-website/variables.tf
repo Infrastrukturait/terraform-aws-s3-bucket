@@ -12,9 +12,3 @@ variable "bucket_name" {
   type        = string
   description = "Name of the bucket."
 }
-
-variable "bucket_acl" {
-  type        = string
-  default     = "private"
-  description = "The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply."
-}

@@ -14,9 +14,9 @@ module "bucket_label" {
 }
 
 module "app_prod_bucket" {
-  source      = "../../"
-  bucket_name = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
-  bucket_acl  = var.bucket_acl
+  source                  = "../../"
+  bucket_name             = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
+  bucket_object_ownership = "BucketOwnerEnforced"
   lifecycle_rules = [
     {
       id      = "log"
@@ -51,5 +51,6 @@ module "app_prod_bucket" {
       }
     }
   ]
+
   tags = module.bucket_label.tags
 }

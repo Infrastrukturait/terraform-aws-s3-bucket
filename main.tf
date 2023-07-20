@@ -3,13 +3,25 @@ locals {
   bucket_arn = "arn:aws:s3:::${var.bucket_name}"
 
   bucket_acl_enabled = var.bucket_acl == "" ? false : true
-  bucket_acl         = local.bucket_acl_enabled ? (var.website_enabled ? "public-read" : var.bucket_acl) : ""
+  bucket_acl         = local.bucket_acl_enabled ? var.bucket_acl : null
 
   public_access_block_enabled = var.block_public_acls || var.block_public_policy || var.ignore_public_acls || var.restrict_public_buckets
   bucket_policy_enabled       = var.bucket_policy == "" ? false : true
   lifecycle_rules_enabled     = length(var.lifecycle_rules) == 0 ? false : true
 
   versioning = var.versioning ? "Enabled" : "Disabled"
+
+  acl_grants = var.bucket_grants == null ? [] : flatten(
+    [
+      for g in var.bucket_grants : [
+        for p in g.permissions : {
+          id         = g.id
+          type       = g.type
+          permission = p
+          uri        = g.uri
+        }
+      ]
+  ])
 
   # `full_lifecycle_rule_schema` is just for documentation and cheat sheet for maintainer, not actually used.
   # tflint-ignore: terraform_unused_declarations
@@ -45,6 +57,8 @@ locals {
   }
 }
 
+data "aws_canonical_user_id" "this" {}
+
 resource "aws_s3_bucket" "this" {
   bucket        = var.bucket_name
   force_destroy = var.force_destroy
@@ -68,12 +82,43 @@ resource "aws_s3_bucket_policy" "this" {
   count  = tobool(local.bucket_policy_enabled) ? 1 : 0
   bucket = var.bucket_name
   policy = var.bucket_policy
+
+  depends_on = [aws_s3_bucket_public_access_block.this]
 }
 
 resource "aws_s3_bucket_acl" "this" {
-  count  = tobool(local.bucket_acl_enabled) ? 1 : 0
+  count  = (var.bucket_object_ownership != "BucketOwnerEnforced" && (local.bucket_acl != null || length(local.acl_grants) > 0)) ? 1 : 0
   bucket = var.bucket_name
-  acl    = local.bucket_acl
+
+  # Conflicts with access_control_policy so this is enabled if no grants
+  # hack when `null` value can't be used (eg, from terragrunt, https://github.com/gruntwork-io/terragrunt/pull/1367)
+  acl = try(length(local.acl_grants), 0) == 0 ? local.bucket_acl : null
+
+  dynamic "access_control_policy" {
+    for_each = try(length(local.acl_grants), 0) == 0 || try(length(local.bucket_acl), 0) > 0 ? [] : [1]
+
+    content {
+      dynamic "grant" {
+        for_each = local.acl_grants
+
+        content {
+          grantee {
+            id   = grant.value.id
+            type = grant.value.type
+            uri  = grant.value.uri
+          }
+          permission = grant.value.permission
+        }
+      }
+
+      owner {
+        id = join("", data.aws_canonical_user_id.this.id)
+      }
+    }
+  }
+
+  # This `depends_on` is to prevent "AccessControlListNotSupported: The bucket does not allow ACLs."
+  depends_on = [aws_s3_bucket_ownership_controls.this]
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
@@ -84,6 +129,17 @@ resource "aws_s3_bucket_public_access_block" "this" {
   block_public_policy     = var.block_public_policy
   ignore_public_acls      = var.ignore_public_acls
   restrict_public_buckets = var.restrict_public_buckets
+}
+
+resource "aws_s3_bucket_ownership_controls" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    object_ownership = var.bucket_object_ownership
+  }
+
+  # This `depends_on` is to prevent "A conflicting conditional operation is currently in progress against this resource."
+  depends_on = [time_sleep.wait_for_aws_s3_bucket_settings]
 }
 
 resource "aws_s3_bucket_versioning" "this" {
@@ -209,4 +265,10 @@ resource "aws_s3_bucket_website_configuration" "this" {
   }
 
   routing_rules = var.website_routing_rules
+}
+
+resource "time_sleep" "wait_for_aws_s3_bucket_settings" {
+  depends_on       = [aws_s3_bucket_public_access_block.this, aws_s3_bucket_policy.this]
+  create_duration  = "30s"
+  destroy_duration = "30s"
 }

@@ -5,11 +5,42 @@ variable "bucket_name" {
 
 variable "bucket_acl" {
   type        = string
-  default     = ""
+  default     = null
   description = <<-EOT
     The [canned ACL](https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl) to apply.
-    We recommend `private` to avoid exposing sensitive information. When `website_enabled` override by `public-read`.
+    Deprecated by AWS in favor of bucket policies.
+    Automatically disabled if `bucket_object_ownership` is set to "BucketOwnerEnforced".
+    Defaults to "private" for backwards compatibility, but we recommend setting `s3_object_ownership` to "BucketOwnerEnforced" instead.
   EOT
+}
+
+variable "bucket_grants" {
+  type = list(object({
+    id          = string
+    type        = string
+    permissions = list(string)
+    uri         = string
+  }))
+  default     = []
+  description = <<-EOT
+    A list of policy grants for the bucket, taking a list of permissions.
+    Conflicts with `bucket_acl`. Set `bucket_acl` to `null` to use this.
+    Deprecated by AWS in favor of bucket policies.
+    Automatically disabled if `s3_object_ownership` is set to "BucketOwnerEnforced".
+    EOT
+}
+
+variable "bucket_object_ownership" {
+  type        = string
+  default     = "ObjectWriter"
+  description = <<-EOT
+    Specifies the S3 object ownership control.
+    Valid values are `ObjectWriter`, `BucketOwnerPreferred`, and 'BucketOwnerEnforced'.
+    'BucketOwnerEnforced': ACLs are disabled, and the bucket owner automatically owns and has full control over every object in the bucket.
+    'BucketOwnerPreferred': Objects uploaded to the bucket change ownership to the bucket owner if the objects are uploaded with the bucket-owner-full-control canned ACL.
+    'ObjectWriter': The uploading account will own the object if the object is uploaded with the bucket-owner-full-control canned ACL.
+    Defaults to "ObjectWriter" for backwards compatibility, but we recommend setting "BucketOwnerEnforced" instead.
+    EOT
 }
 
 variable "bucket_policy" {

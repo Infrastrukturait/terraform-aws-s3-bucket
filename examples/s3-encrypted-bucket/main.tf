@@ -24,10 +24,13 @@ module "bucket_kms_key" {
 }
 
 module "app_prod_bucket" {
-  source                    = "../../"
-  bucket_name               = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
-  bucket_acl                = var.bucket_acl
+  source                  = "../../"
+  bucket_name             = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
+  bucket_object_ownership = "BucketOwnerEnforced"
+
   encryption_enabled        = true
+  encryption_sse_algorithm  = "aws:kms"
   encryption_master_kms_key = module.bucket_kms_key.key_arn
-  tags                      = module.bucket_label.tags
+
+  tags = module.bucket_label.tags
 }
