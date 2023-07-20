@@ -40,7 +40,7 @@ variable "encryption_sse_algorithm" {
   validation {
     condition     = contains(["AES256", "aws:kms"], var.encryption_sse_algorithm)
     error_message = "Valid values for encryption_sse_algorithm: `AES256` and `aws:kms`."
-  } 
+  }
 }
 
 variable "force_destroy" {
@@ -121,7 +121,7 @@ variable "versioning" {
 variable "lifecycle_rules" {
   type        = any
   default     = []
-  description =  <<-EOT
+  description = <<-EOT
     List of maps containing configuration of object lifecycle management.
     Example to older objects than `60 days` to move to [GLACIER](https://aws.amazon.com/s3/storage-classes/glacier/) storage class:
     ```

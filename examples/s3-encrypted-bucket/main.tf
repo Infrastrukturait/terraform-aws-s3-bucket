@@ -1,5 +1,5 @@
-module "app_prod_bastion_label" {
-  source   = "cloudposse/label/null"
+module "bucket_label" {
+  source  = "cloudposse/label/null"
   version = "v0.25.0"
 
   namespace  = "app"
@@ -13,21 +13,21 @@ module "app_prod_bastion_label" {
   }
 }
 
-module "app_prod_bastion_bucket_key" {
+module "bucket_kms_key" {
   source                  = "Infrastrukturait/kms-key/aws"
   version                 = "0.1.0"
   description             = "This key is used to encrypt bucket objects"
   deletion_window_in_days = 10
   enable_key_rotation     = false
 
-  tags                    = module.app_prod_kms_label.tags  
+  tags = module.bucket_label.tags
 }
 
 module "app_prod_bucket" {
-    source                      = "../../"
-    bucket_name                 = join(module.app_prod_bastion_label.delimiter, [module.app_prod_bastion_label.stage, module.app_prod_bastion_label.name, var.name])
-    bucket_acl                  = var.bucket_acl
-    encryption_enabled          = true
-    encryption_master_kms_key   = module.app_prod_bastion_bucket_key.key_arn
-    tags                        = module.app_prod_bastion_label.tags
+  source                    = "../../"
+  bucket_name               = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
+  bucket_acl                = var.bucket_acl
+  encryption_enabled        = true
+  encryption_master_kms_key = module.bucket_kms_key.key_arn
+  tags                      = module.bucket_label.tags
 }

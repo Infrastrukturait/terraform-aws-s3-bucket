@@ -1,20 +1,20 @@
 {
-  "name": "terraform-aws-s3-bucket",
-  "repo_url": "https://github.com/Infrastrukturait/terraform-aws-s3-bucket",
-  "license": "GPLv3",
-  "includes": [
-    "docs/terraform.md"
-  ],
   "authors": [
     {
-      "name": "Rafał Masiarek",
       "email": "rafal@masiarek.pl",
       "github": "rafalmasiarek",
+      "name": "Rafa\u0142 Masiarek",
       "website": "https://masiarek.pl"
     }
   ],
   "context": [
     "## About",
     "Terraform base module for creating a secure [AWS S3-Bucket](https://aws.amazon.com/s3/)."
-  ]
+  ],
+  "includes": [
+    "docs/terraform.md"
+  ],
+  "license": "GPLv3",
+  "name": "terraform-aws-s3-bucket",
+  "repo_url": "https://github.com/Infrastrukturait/terraform-aws-s3-bucket"
 }

@@ -1,18 +1,21 @@
 locals {
-  bucket_arn                  = "arn:aws:s3:::${var.bucket_name}"
-  bucket_acl_enabled          = var.bucket_acl == "" ? false : true
-  bucket_acl                  = local.bucket_acl_enabled ? (var.website_enabled ? "public-read" : var.bucket_acl) : ""
+  # tflint-ignore: terraform_unused_declarations
+  bucket_arn = "arn:aws:s3:::${var.bucket_name}"
+
+  bucket_acl_enabled = var.bucket_acl == "" ? false : true
+  bucket_acl         = local.bucket_acl_enabled ? (var.website_enabled ? "public-read" : var.bucket_acl) : ""
 
   public_access_block_enabled = var.block_public_acls || var.block_public_policy || var.ignore_public_acls || var.restrict_public_buckets
   bucket_policy_enabled       = var.bucket_policy == "" ? false : true
   lifecycle_rules_enabled     = length(var.lifecycle_rules) == 0 ? false : true
 
-  versioning                  = var.versioning ? "Enabled" : "Disabled"
+  versioning = var.versioning ? "Enabled" : "Disabled"
 
   # `full_lifecycle_rule_schema` is just for documentation and cheat sheet for maintainer, not actually used.
-  full_lifecycle_rule_schema  = {
-    id                             = null # string, must be specified and unique
-    status                         = true # bool
+  # tflint-ignore: terraform_unused_declarations
+  full_lifecycle_rule_schema = {
+    id     = null # string, must be specified and unique
+    status = true # bool
 
     abort_incomplete_multipart_upload_days = null # number
     expiration = {
@@ -21,23 +24,23 @@ locals {
       expired_object_delete_marker = null # bool
     }
     transition = [{
-      date                         = null # string
-      days                         = null # integer >= 0
-      storage_class                = null # string/enum, one of `GLACIER`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING, `DEEP_ARCHIVE`, `GLACIER_IR`.
+      date          = null # string
+      days          = null # integer >= 0
+      storage_class = null # string/enum, one of `GLACIER`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING, `DEEP_ARCHIVE`, `GLACIER_IR`.
     }]
     noncurrent_version_expiration = {
-      newer_noncurrent_versions    = null # integer > 0
-      noncurrent_days              = null # integer >= 0
+      newer_noncurrent_versions = null # integer > 0
+      noncurrent_days           = null # integer >= 0
     }
     noncurrent_version_transition = [{
-      newer_noncurrent_versions    = null # integer >= 0
-      noncurrent_days              = null # integer >= 0
-      storage_class                = null # string/enum, one of `GLACIER`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, `DEEP_ARCHIVE`, `GLACIER_IR`.
+      newer_noncurrent_versions = null # integer >= 0
+      noncurrent_days           = null # integer >= 0
+      storage_class             = null # string/enum, one of `GLACIER`, `STANDARD_IA`, `ONEZONE_IA`, `INTELLIGENT_TIERING`, `DEEP_ARCHIVE`, `GLACIER_IR`.
     }]
     filter = [{
-      id                           = null # string
-      enabled                      = true # bool
-      filter                        = null # list
+      id      = null # string
+      enabled = true # bool
+      filter  = null # list
     }]
   }
 }
@@ -46,7 +49,7 @@ resource "aws_s3_bucket" "this" {
   bucket        = var.bucket_name
   force_destroy = var.force_destroy
 
-  tags          = var.tags
+  tags = var.tags
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
@@ -87,7 +90,7 @@ resource "aws_s3_bucket_versioning" "this" {
   bucket = var.bucket_name
 
   versioning_configuration {
-    status     = local.versioning
+    status = local.versioning
   }
 }
 
@@ -162,7 +165,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
         content {
           object_size_greater_than = try(filter.value.object_size_greater_than, null)
           object_size_less_than    = try(filter.value.object_size_less_than, null)
-          prefix                    = try(filter.value.prefix, null)
+          prefix                   = try(filter.value.prefix, null)
 
           dynamic "tag" {
             for_each = try(filter.value.tags, filter.value.tag, [])
@@ -183,7 +186,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
           and {
             object_size_greater_than = try(filter.value.object_size_greater_than, null)
             object_size_less_than    = try(filter.value.object_size_less_than, null)
-            prefix                    = try(filter.value.prefix, null)
+            prefix                   = try(filter.value.prefix, null)
             tags                     = try(filter.value.tags, filter.value.tag, null)
           }
         }
@@ -194,7 +197,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
 }
 
 resource "aws_s3_bucket_website_configuration" "this" {
-  count = var.website_enabled ? 1 : 0
+  count  = var.website_enabled ? 1 : 0
   bucket = var.bucket_name
 
   index_document {

@@ -1,10 +1,10 @@
-module "app_prod_bastion_label" {
-  source   = "cloudposse/label/null"
+module "website_label" {
+  source  = "cloudposse/label/null"
   version = "v0.25.0"
 
   namespace  = "app"
   stage      = "prod"
-  name       = "public-docs"
+  name       = "static-website"
   attributes = ["public"]
   delimiter  = "-"
 
@@ -14,14 +14,14 @@ module "app_prod_bastion_label" {
 }
 
 module "app_prod_bucket" {
-    source                      = "../../"
-    bucket_name                 = join(module.app_prod_bastion_label.delimiter, [module.app_prod_bastion_label.stage, module.app_prod_bastion_label.name, var.name])
-    bucket_acl                  = var.bucket_acl
+  source      = "../../"
+  bucket_name = join(module.website_label.delimiter, [module.website_label.stage, module.website_label.name, var.bucket_name])
+  bucket_acl  = var.bucket_acl
 
-    website_enabled             = true
-    website_index_document      = "index.html"
-    website_error_document      = "error.html"
-    website_routing_rules       = <<-EOT
+  website_enabled        = true
+  website_index_document = "index.html"
+  website_error_document = "error.html"
+  website_routing_rules  = <<-EOT
 [
     {
         "Condition": {
@@ -33,5 +33,5 @@ module "app_prod_bucket" {
     }
 ]
 EOT
-    tags                        = module.app_prod_bastion_label.tags
+  tags                   = module.website_label.tags
 }

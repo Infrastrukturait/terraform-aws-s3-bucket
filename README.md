@@ -31,7 +31,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ## Documentation
 
 
-
 ### Requirements
 
 | Name | Version |
@@ -43,7 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 2.0.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
 
 ### Modules
 
@@ -73,7 +72,7 @@ No modules.
 | <a name="input_bucket_policy"></a> [bucket\_policy](#input\_bucket\_policy) | A bucket policy in JSON format | `string` | `""` | no |
 | <a name="input_encryption_enabled"></a> [encryption\_enabled](#input\_encryption\_enabled) | Boolean to enable server-side encryption for S3 bucket. | `bool` | `false` | no |
 | <a name="input_encryption_master_kms_key"></a> [encryption\_master\_kms\_key](#input\_encryption\_master\_kms\_key) | AWS KMS master key ID used for the SSE-KMS encryption. This can only be used when you set the value of `encryption_sse_algorithm` as `aws:kms`<br>When empty in use is default aws/s3 AWS KMS master key provided by AWS. | `string` | `""` | no |
-| <a name="input_encryption_sse_algorithm"></a> [encryption\_sse\_algorithm](#input\_encryption\_sse\_algorithm) | server-side encryption algorithm to use. Valid values are `AES256` and `aws:kms` | `string` | `"aws:kms"` | no |
+| <a name="input_encryption_sse_algorithm"></a> [encryption\_sse\_algorithm](#input\_encryption\_sse\_algorithm) | server-side encryption algorithm to use. Valid values are `AES256` and `aws:kms` | `string` | `"AES256"` | no |
 | <a name="input_force_destroy"></a> [force\_destroy](#input\_force\_destroy) | A boolean that indicates all objects should be deleted from the bucket so that the bucket can be destroyed without error. | `bool` | `false` | no |
 | <a name="input_ignore_public_acls"></a> [ignore\_public\_acls](#input\_ignore\_public\_acls) | Set to `false` to disable the ignoring of public access lists on the bucket. | `bool` | `true` | no |
 | <a name="input_lifecycle_rules"></a> [lifecycle\_rules](#input\_lifecycle\_rules) | List of maps containing configuration of object lifecycle management.<br>Example to older objects than `60 days` to move to [GLACIER](https://aws.amazon.com/s3/storage-classes/glacier/) storage class:<pre>[<br>  {<br>    id      = "example1"<br>    enabled = true<br>    transition = [<br>      {<br>        days          = 60<br>        storage_class = "GLACIER"<br>      }<br>    ]<br>  }<br>]</pre> | `any` | `[]` | no |
@@ -97,8 +96,8 @@ No modules.
 ### Examples
 
 ```hcl
-module "app_prod_bastion_label" {
-  source   = "cloudposse/label/null"
+module "bucket_label" {
+  source  = "cloudposse/label/null"
   version = "v0.25.0"
 
   namespace  = "app"
@@ -113,47 +112,49 @@ module "app_prod_bastion_label" {
 }
 
 module "app_prod_bucket" {
-    source                      = "../../"
-    bucket_name                 = join(module.app_prod_bastion_label.delimiter, [module.app_prod_bastion_label.stage, module.app_prod_bastion_label.name, var.name])
-    bucket_acl                  = var.bucket_acl
-    lifecycle_rules             = [
-      {
-        id      = "log"
-        enabled = true
+  source      = "../../"
+  bucket_name = join(module.bucket_label.delimiter, [module.bucket_label.stage, module.bucket_label.name, var.bucket_name])
+  bucket_acl  = var.bucket_acl
+  lifecycle_rules = [
+    {
+      id      = "log"
+      enabled = true
 
-        filter = {
-          tags = {
-            some    = "value"
-            another = "value2"
-          }
-        }
-
-        transition = [
-          {
-            days          = 30
-            storage_class = "ONEZONE_IA"
-          }, 
-          {
-            days          = 60
-            storage_class = "GLACIER"
-          }
-        ]
-
-        expiration = {
-          days = 90
-          expired_object_delete_marker = true
-        }
-
-        noncurrent_version_expiration = {
-          newer_noncurrent_versions = 5
-          days = 30
+      filter = {
+        tags = {
+          some    = "value"
+          another = "value2"
         }
       }
-    ]
-    tags                        = module.app_prod_bastion_label.tags
+
+      transition = [
+        {
+          days          = 30
+          storage_class = "ONEZONE_IA"
+        },
+        {
+          days          = 60
+          storage_class = "GLACIER"
+        }
+      ]
+
+      expiration = {
+        days                         = 90
+        expired_object_delete_marker = true
+      }
+
+      noncurrent_version_expiration = {
+        newer_noncurrent_versions = 5
+        days                      = 30
+      }
+    }
+  ]
+  tags = module.bucket_label.tags
 }
 ```
+
 <!-- END_TF_DOCS -->
+
 
 <!-- references -->
 
