@@ -3,7 +3,7 @@ terraform {
 
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 2.0.0"
+      version = ">= 4.9.0"
     }
     time = {
       source  = "hashicorp/time"
@@ -11,5 +11,5 @@ terraform {
     }
   }
 
-  required_version = ">= 0.14"
+  required_version = ">= 1.0"
 }
