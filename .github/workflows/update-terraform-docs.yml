@@ -1,0 +1,47 @@
+name: "update-docs"
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+
+jobs:
+  update-tf-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Render terraform docs inside the docs/terraform.md
+        uses: terraform-docs/gh-actions@v1.0.0
+        with:
+          working-dir: .
+          output-format: markdown table
+          output-file: docs/terraform.md
+          output-method: replace
+          config-file: .terraform-docs.yml
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
+        id: update
+        with:
+          image: hairyhenderson/gomplate-ci-build:latest
+          options: -v ${{ github.workspace }}:/workspace
+          run: |
+            cd /workspace
+            curl https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template |\
+              gomplate -d config="/workspace/README.json" > /workspace/README.md
+              if git diff --no-patch --exit-code /workspace/README.md; then
+                echo "No changes detected!"
+                echo "create_commit=false" >> $GITHUB_OUTPUT
+              else
+                echo "Changes detected!"
+                echo "create_commit=true" >> $GITHUB_OUTPUT
+              fi
+      - name: Git Auto-Commit
+        if: steps.update.outputs.create_commit == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Auto update README.md docs
+          commit_options: "--no-verify --signoff"
+
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <actions@github.com>"
