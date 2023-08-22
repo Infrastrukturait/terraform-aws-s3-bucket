@@ -22,19 +22,20 @@ jobs:
         uses: addnab/docker-run-action@v3
         id: update
         with:
-          image: hairyhenderson/gomplate-ci-build:latest
+          image: alpine:latest
           options: -v ${{ github.workspace }}:/workspace
           run: |
+            apk add curl git gomplate
             cd /workspace
             curl https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template |\
-              gomplate -d config="/workspace/README.json" > /workspace/README.md
-              if git diff --no-patch --exit-code /workspace/README.md; then
+              gomplate -d config="/workspace/README.json" > ./README.md
+            if git diff --no-patch --exit-code README.md; then
                 echo "No changes detected!"
                 echo "create_commit=false" >> $GITHUB_OUTPUT
-              else
+            else
                 echo "Changes detected!"
                 echo "create_commit=true" >> $GITHUB_OUTPUT
-              fi
+            fi
       - name: Git Auto-Commit
         if: steps.update.outputs.create_commit == 'true'
         uses: stefanzweifel/git-auto-commit-action@v4
