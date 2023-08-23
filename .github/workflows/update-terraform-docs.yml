@@ -38,7 +38,7 @@ jobs:
           esac \
           && curl -sS -L \
             https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_$OS-$ARCH \
-              -o $(mktemp /tmp/gomplate-3.11.5) \
+              -o $(mktemp "/tmp/gomplate-3.11.5") \
           && chmod +x /tmp/gomplate-3.11.5
           && curl -sS -L \
             https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate-3.11.5 -d config="./README.json" > ./README.md 
