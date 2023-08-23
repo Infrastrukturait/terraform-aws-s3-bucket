@@ -38,10 +38,10 @@ jobs:
           esac \
           && curl -sS -L \
             https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_$OS-$ARCH \
-              -o $(mktemp "/tmp/gomplate-3.11.5") \
-          && chmod +x /tmp/gomplate-3.11.5
+              -o /tmp/gomplate \
+          && chmod +x /tmp/gomplate
           && curl -sS -L \
-            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate-3.11.5 -d config="./README.json" > ./README.md 
+            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate -d config="./README.json" > ./README.md 
           if git diff --no-patch --exit-code README.md; then
             echo "No changes detected!"
             echo "create_commit=false" >> $GITHUB_OUTPUT
