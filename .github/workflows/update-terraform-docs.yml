@@ -1,6 +1,8 @@
 name: "update-docs"
 
 on:
+  workflow_dispatch:
+  
   schedule:
     - cron: "0 1 * * *"
 
@@ -39,8 +41,8 @@ jobs:
               -o $(mktemp /tmp/gomplate-3.11.5) \
           && chmod +x /tmp/gomplate-3.11.5
           && curl -sS -L \
-            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate-3.11.5 -d config="/workspace/README.json" > ./README.md 
-          if git diff --no-patch --exit-code .terraform-version; then
+            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate-3.11.5 -d config="./README.json" > ./README.md 
+          if git diff --no-patch --exit-code README.md; then
             echo "No changes detected!"
             echo "create_commit=false" >> $GITHUB_OUTPUT
           else
