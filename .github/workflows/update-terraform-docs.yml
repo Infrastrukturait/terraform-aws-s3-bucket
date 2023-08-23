@@ -12,14 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Render terraform docs inside the docs/terraform.md
-        uses: terraform-docs/gh-actions@v1.0.0
-        with:
-          working-dir: .
-          output-format: markdown table
-          output-file: docs/terraform.md
-          output-method: replace
-          config-file: .terraform-docs.yml
       - name: Render README.md
         shell: bash
         id: update
@@ -38,8 +30,14 @@ jobs:
           esac \
           && curl -sS -L \
             https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_$OS-$ARCH \
-              -o /tmp/gomplate \
+            -o /tmp/gomplate \
           && chmod +x /tmp/gomplate \
+          && curl -sS -L \
+            https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-arm.tar.gz \
+            -o /tmp/terraform-docs.tar.gz \ 
+          && tar -xzf /tmp/terraform-docs.tar.gz -C /tmp \
+          && chmod +x /tmp/terraform-docs
+          && /tmp/terraform-docs markdown table --config .terraform-docs.yml --output-mode replace --output-file docs/terraform.md \
           && curl -sS -L \
             https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate -d config="./README.json" > ./README.md 
           if git diff --no-patch --exit-code README.md; then
