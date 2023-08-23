@@ -18,24 +18,35 @@ jobs:
           output-file: docs/terraform.md
           output-method: replace
           config-file: .terraform-docs.yml
-      - name: Run the build process with Docker
-        uses: addnab/docker-run-action@v3
+      - name: Render README.md
+        shell: bash
         id: update
-        with:
-          image: alpine:latest
-          options: -v ${{ github.workspace }}:/workspace
-          run: |
-            apk add curl git gomplate
-            cd /workspace
-            curl https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template |\
-              gomplate -d config="/workspace/README.json" > ./README.md
-            if git diff --no-patch --exit-code README.md; then
-                echo "No changes detected!"
-                echo "create_commit=false" >> $GITHUB_OUTPUT
-            else
-                echo "Changes detected!"
-                echo "create_commit=true" >> $GITHUB_OUTPUT
-            fi
+        run: |
+          set -eux \
+          && case "$(uname -s)" in \
+            Darwin) OS="darwin" ;; \
+            Linux)  OS="linux"  ;; \
+            CYGWIN*|MINGW32*|MSYS*|MINGW*) OS="windows" ;; \
+            *) OS="unknown" ;; \
+          esac \
+          && case "$(uname -m)" in \
+            x86_64) ARCH="amd64" ;; \
+            arm64|aarch64)  ARCH="arm64" ;; \
+            *)      ARCH="unknown" ;; \
+          esac \
+          && curl -sS -L \
+            https://github.com/hairyhenderson/gomplate/releases/download/v3.11.5/gomplate_$OS-$ARCH \
+              -o $(mktemp /tmp/gomplate-3.11.5) \
+          && chmod +x /tmp/gomplate-3.11.5
+          && curl -sS -L \
+            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate-3.11.5 -d config="/workspace/README.json" > ./README.md 
+          if git diff --no-patch --exit-code .terraform-version; then
+            echo "No changes detected!"
+            echo "create_commit=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version detected!"
+            echo "create_commit=true" >> $GITHUB_OUTPUT
+          fi
       - name: Git Auto-Commit
         if: steps.update.outputs.create_commit == 'true'
         uses: stefanzweifel/git-auto-commit-action@v4
