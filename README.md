@@ -50,8 +50,8 @@ See [LICENSE](LICENSE) for full details.
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
-| <a name="provider_time"></a> [time](#provider\_time) | 0.9.1 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.9.0 |
+| <a name="provider_time"></a> [time](#provider\_time) | >= 0.9.1 |
 
 ### Modules
 
@@ -169,7 +169,6 @@ module "app_prod_bucket" {
 ```
 
 <!-- END_TF_DOCS -->
-
 
 <!-- references -->
 
