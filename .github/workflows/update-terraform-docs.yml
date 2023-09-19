@@ -7,7 +7,7 @@ on:
     - cron: "0 1 * * *"
 
 jobs:
-  update-tf-version:
+  update-tf-docs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
