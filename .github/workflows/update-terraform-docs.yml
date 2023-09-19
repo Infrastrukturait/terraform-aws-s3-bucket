@@ -38,7 +38,7 @@ jobs:
           && tar -xzf /tmp/terraform-docs.tar.gz -C /tmp \
           && chmod +x /tmp/terraform-docs \
           && rm -f /tmp/terraform-docs.tar.gz \
-          && /tmp/terraform-docs markdown table --config .terraform-docs.yml --output-mode replace --output-file docs/terraform.md \
+          && /tmp/terraform-docs markdown table --config .terraform-docs.yml --output-mode replace --output-file docs/terraform.md . \
           && curl -sS -L \
             https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate -d config="./README.json" > ./README.md \
           && rm -f /tmp/terraform-docs /tmp/gomplate
