@@ -36,10 +36,12 @@ jobs:
             https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-$OS-$ARCH.tar.gz \
             -o /tmp/terraform-docs.tar.gz \
           && tar -xzf /tmp/terraform-docs.tar.gz -C /tmp \
-          && chmod +x /tmp/terraform-docs
+          && chmod +x /tmp/terraform-docs \
+          && rm -f /tmp/terraform-docs.tar.gz \
           && /tmp/terraform-docs markdown table --config .terraform-docs.yml --output-mode replace --output-file docs/terraform.md \
           && curl -sS -L \
-            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate -d config="./README.json" > ./README.md 
+            https://raw.githubusercontent.com/Infrastrukturait/READMEgen/main/README.md.template | /tmp/gomplate -d config="./README.json" > ./README.md \
+          && rm -f /tmp/terraform-docs /tmp/gomplate
           if git diff --no-patch --exit-code README.md; then
             echo "No changes detected!"
             echo "create_commit=false" >> $GITHUB_OUTPUT
