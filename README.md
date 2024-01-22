@@ -46,13 +46,6 @@ See [LICENSE](LICENSE) for full details.
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.9.0 |
 | <a name="requirement_time"></a> [time](#requirement\_time) | >= 0.9.1 |
 
-### Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.9.0 |
-| <a name="provider_time"></a> [time](#provider\_time) | >= 0.9.1 |
-
 ### Modules
 
 No modules.
@@ -169,6 +162,7 @@ module "app_prod_bucket" {
 ```
 
 <!-- END_TF_DOCS -->
+
 
 <!-- references -->
 
