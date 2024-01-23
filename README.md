@@ -163,7 +163,6 @@ module "app_prod_bucket" {
 
 <!-- END_TF_DOCS -->
 
-
 <!-- references -->
 
 [repo_link]: https://github.com/Infrastrukturait/terraform-aws-s3-bucket
